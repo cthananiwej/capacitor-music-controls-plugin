@@ -96,6 +96,9 @@ public class CapacitorMusicControls extends Plugin {
 
 				}
 
+				final int duration = options.getInt("durationInMs");
+				metadataBuilder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration);
+
 				mediaSessionCompat.setMetadata(metadataBuilder.build());
 
 				if(infos.isPlaying)
@@ -299,10 +302,12 @@ public class CapacitorMusicControls extends Plugin {
 			final boolean isPlaying = params.getBoolean("isPlaying");
 			this.notification.updateIsPlaying(isPlaying);
 
+			final int position = params.getInt("positionInMs");
+
 			if(isPlaying)
-				setMediaPlaybackState(PlaybackStateCompat.STATE_PLAYING);
+				setMediaPlaybackState(PlaybackStateCompat.STATE_PLAYING, position);
 			else
-				setMediaPlaybackState(PlaybackStateCompat.STATE_PAUSED);
+				setMediaPlaybackState(PlaybackStateCompat.STATE_PAUSED, position);
 
 			call.resolve();
 		} catch(JSONException e){
@@ -368,6 +373,22 @@ public class CapacitorMusicControls extends Plugin {
 					PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID |
 					PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH);
 			playbackstateBuilder.setState(state, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 0);
+		}
+		this.mediaSessionCompat.setPlaybackState(playbackstateBuilder.build());
+	}
+
+	private void setMediaPlaybackState(int state, int position) {
+		PlaybackStateCompat.Builder playbackstateBuilder = new PlaybackStateCompat.Builder();
+		if( state == PlaybackStateCompat.STATE_PLAYING ) {
+			playbackstateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
+					PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID |
+					PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH);
+			playbackstateBuilder.setState(state, position, 1.0f);
+		} else {
+			playbackstateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
+					PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID |
+					PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH);
+			playbackstateBuilder.setState(state, position, 0);
 		}
 		this.mediaSessionCompat.setPlaybackState(playbackstateBuilder.build());
 	}
