@@ -60,6 +60,8 @@ public class CapacitorMusicControls extends Plugin {
 	private android.media.session.MediaSession.Token token;
 	private MusicControlsServiceConnection mConnection;
 
+	private boolean live;
+
 
 	private MediaSessionCallback mMediaSessionCallback = new MediaSessionCallback(this);
 
@@ -96,8 +98,11 @@ public class CapacitorMusicControls extends Plugin {
 
 				}
 
-				final int duration = options.getInt("durationInMs");
-				metadataBuilder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration);
+				live = options.getBoolean("live");
+				if (!live) {
+					final int duration = options.getInt("durationInMs");
+					metadataBuilder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration);
+				}
 
 				mediaSessionCompat.setMetadata(metadataBuilder.build());
 
@@ -363,15 +368,17 @@ public class CapacitorMusicControls extends Plugin {
 
 	private void setMediaPlaybackState(int state) {
 		PlaybackStateCompat.Builder playbackstateBuilder = new PlaybackStateCompat.Builder();
+
+		Long actions = PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID | PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH;
+		if (!this.live) {
+			actions |= PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS;
+		}
+
 		if( state == PlaybackStateCompat.STATE_PLAYING ) {
-			playbackstateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
-					PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID |
-					PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH);
+			playbackstateBuilder.setActions(actions | PlaybackStateCompat.ACTION_PAUSE);
 			playbackstateBuilder.setState(state, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f);
 		} else {
-			playbackstateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
-					PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID |
-					PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH);
+			playbackstateBuilder.setActions(actions | PlaybackStateCompat.ACTION_PLAY);
 			playbackstateBuilder.setState(state, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 0);
 		}
 		this.mediaSessionCompat.setPlaybackState(playbackstateBuilder.build());
@@ -379,15 +386,17 @@ public class CapacitorMusicControls extends Plugin {
 
 	private void setMediaPlaybackState(int state, int position) {
 		PlaybackStateCompat.Builder playbackstateBuilder = new PlaybackStateCompat.Builder();
+
+		Long actions = PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID | PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH;
+		if (!this.live) {
+			actions |= PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS;
+		}
+
 		if( state == PlaybackStateCompat.STATE_PLAYING ) {
-			playbackstateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
-					PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID |
-					PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH);
+			playbackstateBuilder.setActions(actions | PlaybackStateCompat.ACTION_PAUSE);
 			playbackstateBuilder.setState(state, position, 1.0f);
 		} else {
-			playbackstateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
-					PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID |
-					PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH);
+			playbackstateBuilder.setActions(actions | PlaybackStateCompat.ACTION_PLAY);
 			playbackstateBuilder.setState(state, position, 0);
 		}
 		this.mediaSessionCompat.setPlaybackState(playbackstateBuilder.build());
